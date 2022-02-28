@@ -349,22 +349,18 @@ auto Phy::mbsfn_config_for_tti(uint32_t tti, unsigned& area)
       cfg.enable                  = true;
       cfg.is_mcch                 = true;
     }
-  } else if (sfn % enum_to_number(area_info.mcch_cfg.mcch_repeat_period) == area_info.mcch_cfg.mcch_offset &&
-      sf == 1) {
-      cfg.mbsfn_mcs               = enum_to_number(area_info.mcch_cfg.sig_mcs);
-      cfg.enable                  = true;
-      cfg.is_mcch                 = false;
   } else {
     if (_mch_configured) {
       cfg.mbsfn_area_id = area_info.mbsfn_area_id;
 
       for (uint32_t i = 0; i < _mcch.nof_pmch_info; i++) {
         unsigned fn_in_scheduling_period =  sfn % enum_to_number(_mcch.pmch_info_list[i].mch_sched_period);
-        unsigned sf_idx = fn_in_scheduling_period * 10 + sf 
-          - (fn_in_scheduling_period / 4) // minus 1 CAS SF per 4 SFNs 
-          - 1; // minus 1 MCCH SF per scheduling period;
-
-        spdlog::debug("i {}, tti {}, fn_in_ {}, sf_idx {}", i, tti, fn_in_scheduling_period,  sf_idx);
+        unsigned sf_idx;
+        if (_cell.mbms_dedicated) {
+          sf_idx = fn_in_scheduling_period * 10 + sf - (fn_in_scheduling_period / 4) - 1;
+        } else {
+          sf_idx = fn_in_scheduling_period * 6 + (sf < 6 ? sf - 1 : sf - 3);
+        }
 
         if (sf_idx <= _mcch.pmch_info_list[i].sf_alloc_end) {
           area = i;
