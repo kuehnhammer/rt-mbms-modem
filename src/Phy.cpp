@@ -144,10 +144,11 @@ auto Phy::cell_search() -> bool {
     if (new_cell.mbms_dedicated) {
       srsran_pbch_mib_mbms_unpack(bch_payload.data(), &new_cell, &sfn, nullptr,
           _override_nof_prb);
+      sfn = (sfn + sfn_offset * kSfnOffset) % kMaxSfn;
     } else {
       srsran_pbch_mib_unpack(bch_payload.data(), &new_cell, &sfn);
+      sfn = (sfn + sfn_offset) % kMaxSfn;
     }
-    sfn = (sfn + sfn_offset) % 1024;
 
     spdlog::info(
         "Phy: MIB Decoded. {} cell, Mode {}, PCI {}, PRB {}, Ports {}, CFO {} KHz, SFN "
