@@ -288,6 +288,7 @@ auto main(int argc, char **argv) -> int {
     exit(1);
   }
 
+  srslog::set_default_sink( srslog::fetch_stdout_sink() );
   set_srsran_verbose_level(arguments.log_level <= 1 ? SRSRAN_VERBOSE_DEBUG : SRSRAN_VERBOSE_NONE);
   srsran_use_standard_symbol_size(true);
 
@@ -314,6 +315,27 @@ auto main(int argc, char **argv) -> int {
   cfg.lookupValue("modem.measurement_file.enabled", enable_measurement_file);
   MeasurementFileWriter measurement_file(cfg);
 
+  auto srs_level = srslog::basic_levels::none;
+  switch (arguments.srs_log_level) {
+    case 0: srs_level = srslog::basic_levels::debug; break;
+    case 1: srs_level = srslog::basic_levels::info; break;
+    case 2: srs_level = srslog::basic_levels::warning; break;
+    case 3: srs_level = srslog::basic_levels::error; break;
+    case 4: srs_level = srslog::basic_levels::none; break;
+  }
+
+  // Configure srsLTE logging
+ srslog::init();
+ srslog::fetch_basic_logger("ALL").set_level(srs_level);
+ auto& mac_log = srslog::fetch_basic_logger("MAC");
+  mac_log.set_level(srs_level);
+ auto& phy_log = srslog::fetch_basic_logger("PHY");
+  phy_log.set_level(srs_level);
+ auto& rlc_log = srslog::fetch_basic_logger("RLC");
+  rlc_log.set_level(srs_level);
+ auto& asn1_log = srslog::fetch_basic_logger("ASN1");
+  asn1_log.set_level(srs_level);
+
   // Create the layer components: Phy, RLC, RRC and GW
   Phy phy(
       cfg,
@@ -335,24 +357,6 @@ auto main(int argc, char **argv) -> int {
   rlc.init(&pdcp, &rrc, &timers, 0 /* RB_ID_SRB0 */);
   pdcp.init(&rlc, &rrc,  &gw);
 
-  auto srs_level = srslog::basic_levels::none;
-  switch (arguments.srs_log_level) {
-    case 0: srs_level = srslog::basic_levels::debug; break;
-    case 1: srs_level = srslog::basic_levels::info; break;
-    case 2: srs_level = srslog::basic_levels::warning; break;
-    case 3: srs_level = srslog::basic_levels::error; break;
-    case 4: srs_level = srslog::basic_levels::none; break;
-  }
-
-  // Configure srsLTE logging
- auto& mac_log = srslog::fetch_basic_logger("MAC", false);
-  mac_log.set_level(srs_level);
- auto& phy_log = srslog::fetch_basic_logger("PHY", false);
-  phy_log.set_level(srs_level);
- auto& rlc_log = srslog::fetch_basic_logger("RLC", false);
-  rlc_log.set_level(srs_level);
- auto& asn1_log = srslog::fetch_basic_logger("ASN1", false);
-  asn1_log.set_level(srs_level);
 
 
   state_t state = searching;
