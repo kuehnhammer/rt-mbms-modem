@@ -235,7 +235,9 @@ auto MbsfnFrameProcessor::process(uint32_t tti) -> int {
         if ( sf_idx >= itr->second ) {
           const std::lock_guard<std::mutex> lock(_rlc_mutex);
           spdlog::debug("Stopping LCID {} in tti {} (idx in rf {})", itr->first, tti, sf_idx);
-          _rlc.stop_mch(i, itr->first);
+          if (!_allow_rrc_sn_across_periods) {
+            _rlc.stop_mch(i, itr->first);
+          }
           itr = _sched_stops.erase(itr);
         } else {
           itr = std::next(itr);

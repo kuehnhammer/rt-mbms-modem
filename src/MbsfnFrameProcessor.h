@@ -54,7 +54,10 @@ class MbsfnFrameProcessor {
       , _rest(rest)
       , mch_mac_msg(20, log_h)
       , _rx_channels(rx_channels)
-      {}
+      {
+        _allow_rrc_sn_across_periods = false;
+        cfg.lookupValue("modem.phy.allow_rrc_sn_across_periods", _allow_rrc_sn_across_periods);
+      }
 
     /**
      *  Default destructor.
@@ -152,6 +155,8 @@ class MbsfnFrameProcessor {
     RestHandler& _rest;
 
     unsigned _rx_channels;
+
+    bool _allow_rrc_sn_across_periods = false;
 
     static std::mutex _sched_stop_mutex;
     static std::map<uint8_t, uint16_t> _sched_stops;
