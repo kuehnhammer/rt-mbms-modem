@@ -307,8 +307,7 @@ auto Phy::is_cas_subframe(unsigned tti) -> bool
     // This is subframe 0 in a radio frame divisible by 4, and hence a CAS frame. 
     return tti%40 == 0;
   } else {
-    unsigned sfn = tti / 10;
-    return (tti%10 == 0 || tti%10 == 5); 
+    return (tti%10 == 0 || tti%10 == 4 || tti%10 == 5 || tti%10 == 9);
   }
 }
 
