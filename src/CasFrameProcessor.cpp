@@ -88,6 +88,7 @@ void CasFrameProcessor::set_cell(srsran_cell_t cell) {
 
 auto CasFrameProcessor::process(uint32_t tti) -> bool {
   _sf_cfg.tti = tti;
+  _sf_cfg.cfi = _cell.semi_static_cfi ? _cell.semi_static_cfi : 0;
   _sf_cfg.sf_type = SRSRAN_SF_NORM;
 
   if ((tti/10)%100 == 0) {
