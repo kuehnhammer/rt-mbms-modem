@@ -36,6 +36,7 @@ docs
 
 # cmake build directory
 build
+cmake-build-debug
 
 # VIM files
 # Swap
@@ -57,3 +58,6 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
+#Clion
+.idea
