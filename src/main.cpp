@@ -425,15 +425,17 @@ auto main(int argc, char **argv) -> int {
         } else {
           // When decoding from the air, configure the SDR accordingly
           unsigned new_srate = srsran_sampling_freq_hz(cas_nof_prb);
-          spdlog::info("Setting sample rate {} Mhz for {} PRB / {} Mhz channel width", new_srate/1000000.0, phy.nr_prb(),
-              phy.nr_prb() * 0.2);
-          sdr.stop();
+          if (new_srate != sample_rate) {
+            sample_rate = new_srate;
+            spdlog::info("Setting sample rate {} Mhz for {} PRB / {} Mhz channel width", new_srate/1000000.0, phy.nr_prb(),
+                phy.nr_prb() * 0.2);
+            sdr.stop();
 
-          bandwidth = (cas_nof_prb * 200000) * 1.2;
-          sdr.tune(frequency, new_srate, bandwidth, gain, antenna);
+            bandwidth = (cas_nof_prb * 200000);
+            sdr.tune(frequency, new_srate, bandwidth, gain, antenna);
 
-
-          sdr.start();
+            sdr.start();
+          }
         }
         spdlog::debug("Synchronizing subframe");
         // ... and move to syncing state.
@@ -507,19 +509,18 @@ auto main(int argc, char **argv) -> int {
 
               // ...adjust the SDR's sample rate to fit the wider MBSFN bandwidth...
               unsigned new_srate = srsran_sampling_freq_hz(mbsfn_nof_prb);
-              spdlog::info("Setting sample rate {} Mhz for MBSFN with {} PRB / {} Mhz channel width", new_srate/1000000.0, mbsfn_nof_prb,
-                  mbsfn_nof_prb * 0.2);
-              sdr.stop();
-
-              bandwidth = (mbsfn_nof_prb * 200000) * 1.2;
-              sdr.tune(frequency, new_srate, bandwidth, gain, antenna);
-
+              bandwidth = (mbsfn_nof_prb * 200000);
               // ... configure the PHY and CAS processor to decode a narrow CAS and wider MBSFN, and move back to syncing state
               // after reconfiguring and restarting the SDR.
               phy.set_cell();
               cas_processor.set_cell(phy.cell());
-
-              sdr.start();
+              if (new_srate != sample_rate) {
+                spdlog::info("Setting sample rate {} Mhz for MBSFN with {} PRB / {} Mhz channel width", new_srate/1000000.0, mbsfn_nof_prb,
+                    mbsfn_nof_prb * 0.2);
+                sdr.stop();
+                sdr.tune(frequency, new_srate, bandwidth, gain, antenna);
+                sdr.start();
+              }
               spdlog::info("Synchronizing subframe after PRB extension");
               state = syncing;
             }

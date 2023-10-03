@@ -143,19 +143,16 @@ auto SdrReader::set_sample_rate(uint32_t rate, uint8_t idx) -> bool {
 auto SdrReader::set_gain(bool use_agc, double gain, uint8_t idx) -> bool {
   auto sdr = (SoapySDR::Device*)_sdr;
   if (sdr->hasGainMode(SOAPY_SDR_RX, idx)) {
-//    spdlog::info("{} AGC", use_agc ? "Enabling" : "Disabling");
+    spdlog::info("{} AGC", use_agc ? "Enabling" : "Disabling");
     sdr->setGainMode(SOAPY_SDR_RX, idx, use_agc);
   } else if (use_agc) {
-//    spdlog::info("AGC is not supported by this device, please set gain manually");
+    spdlog::info("AGC is not supported by this device, please set gain manually");
   }
   auto gain_range = sdr->getGainRange(SOAPY_SDR_RX, idx);
   _min_gain = gain_range.minimum();
   _max_gain = gain_range.maximum();
   if (gain >= gain_range.minimum() && gain <= gain_range.maximum()) {
     sdr->setGain( SOAPY_SDR_RX, idx, gain);
-    if (idx == 0) {
-      _gain = sdr->getGain( SOAPY_SDR_RX, idx);
-    }
     return true;
   } else {
     spdlog::error("Invalid gain setting {}. Allowed range is: {} - {}.", gain, gain_range.minimum(), gain_range.maximum());
@@ -193,11 +190,12 @@ auto SdrReader::tune(uint32_t frequency, uint32_t sample_rate,
   }
 
   _frequency = sdr->getFrequency( SOAPY_SDR_RX, 0);
-  bandwidth = sdr->getBandwidth( SOAPY_SDR_RX, 0);
+  _filterBw = sdr->getBandwidth( SOAPY_SDR_RX, 0);
   _sampleRate = sdr->getSampleRate( SOAPY_SDR_RX, 0);
+  _gain = sdr->getGain( SOAPY_SDR_RX, 0);
 
   spdlog::info("SDR tuned to {} MHz, filter bandwidth {} MHz, sample rate {}, gain {}, antenna path {}",
-      _frequency/1000000.0, bandwidth/1000000.0, _sampleRate/1000000.0, _gain, _antenna);
+      _frequency/1000000.0, _filterBw/1000000.0, _sampleRate/1000000.0, _gain, _antenna);
 
 
   auto sensors = sdr->listSensors();
@@ -210,6 +208,7 @@ auto SdrReader::tune(uint32_t frequency, uint32_t sample_rate,
 }
 
 void SdrReader::start() {
+  spdlog::debug("Starting SdrReader");
   if (_sdr != nullptr) {
     auto sdr = (SoapySDR::Device*)_sdr;
     std::vector<size_t> channels(_rx_channels);
@@ -242,6 +241,8 @@ void SdrReader::start() {
 }
 
 void SdrReader::stop() {
+  if (!_running) return;
+  spdlog::debug("Stopping SdrReader");
   _running = false;
 
   if (_sdr != nullptr) {

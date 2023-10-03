@@ -39,7 +39,7 @@ const uint32_t kSubframesPerFrame = 10;
 
 const uint32_t kMaxCellsToDiscover = 3;
 
-Phy::Phy(const libconfig::Config& cfg, get_samples_t cb, uint8_t cs_nof_prb,
+Phy::Phy(const libconfig::Config& cfg, get_samples_t cb, uint8_t cs_nof_prb, //NOLINT
          int8_t override_nof_prb, uint8_t rx_channels)
     : _cfg(cfg),
       _sample_cb(std::move(std::move(cb))),
@@ -54,6 +54,7 @@ Phy::Phy(const libconfig::Config& cfg, get_samples_t cb, uint8_t cs_nof_prb,
 Phy::~Phy() {
   srsran_ue_sync_free(&_ue_sync);
   free(_mib_buffer[0]);  // NOLINT
+  free(_mib_buffer[1]);  // NOLINT
 }
 
 auto Phy::synchronize_subframe() -> bool {
@@ -66,8 +67,12 @@ auto Phy::synchronize_subframe() -> bool {
 
   if (ret == 1) {
     std::array<uint8_t, SRSRAN_BCH_PAYLOAD_LEN> bch_payload = {};
-    if (srsran_ue_sync_get_sfidx(&_ue_sync) == 0) {
+    auto sfn = srsran_ue_sync_get_sfn(&_ue_sync);
+    auto sf = srsran_ue_sync_get_sfidx(&_ue_sync);
+    if ((_cell.mbms_dedicated && sf == 0 && sfn % 4 == 0) ||
+        (!_cell.mbms_dedicated && sf == 0)) {
       int sfn_offset = 0;
+   //   srsran_ue_mib_reset(&_mib);
       int n =
           srsran_ue_mib_decode(&_mib, bch_payload.data(), nullptr, &sfn_offset);
       if (n == 1) {

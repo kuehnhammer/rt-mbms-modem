@@ -112,7 +112,7 @@ void Rrc::write_pdu_bcch_dlsch(srsran::unique_byte_buffer_t pdu) {
           //handle_sib13();
           break;
         default:
-          spdlog::debug("SIB{} is not supported\n", sib.type().to_number());
+          spdlog::debug("{} is not supported\n", sib.type().to_string());
       }
     }
   }
