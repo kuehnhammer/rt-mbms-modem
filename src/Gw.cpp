@@ -43,11 +43,11 @@ void Gw::write_pdu_mch(uint32_t mch_idx, uint32_t lcid, srsran::unique_byte_buff
     } else {
       auto ip_hdr = reinterpret_cast<iphdr*>(pdu->msg);
       if (ip_hdr->protocol == 17 /*UDP*/) {
-        auto udp_hdr = reinterpret_cast<udphdr*>(pdu->msg + 4U * ip_hdr->ihl);
+        auto udp_hdr = reinterpret_cast<udphdr*>(pdu->msg + 4UL * ip_hdr->ihl);
         char dest[INET6_ADDRSTRLEN] = "";   // NOLINT
         inet_ntop(AF_INET, (const void*)&ip_hdr->daddr, dest, sizeof(dest));
 
-        _phy.set_dest_for_lcid(mch_idx, lcid, std::string(dest) + ":" + std::to_string(ntohs(udp_hdr->dest)));
+        _phy.set_dest_for_lcid(mch_idx, static_cast<int>(lcid), std::string(dest) + ":" + std::to_string(ntohs(udp_hdr->dest)));
 
         auto ptr = reinterpret_cast<uint16_t*>(ip_hdr);
         int32_t sum = 0;
@@ -73,16 +73,16 @@ void Gw::write_pdu_mch(uint32_t mch_idx, uint32_t lcid, srsran::unique_byte_buff
       }
 
       _wr_mutex.lock();
-      int n = write(_tun_fd, pdu->msg, pdu->N_bytes);
+      auto n = write(_tun_fd, pdu->msg, pdu->N_bytes);
       _wr_mutex.unlock();
 
-      if (n > 0 && (pdu->N_bytes != static_cast<uint32_t>(n))) {
+      if (n > 0L && (pdu->N_bytes != static_cast<uint32_t>(n))) {
         spdlog::warn("DL TUN/TAP short write");
       }
-      if (n == 0) {
+      if (n == 0L) {
         spdlog::warn("DL TUN/TAP 0 write");
       }
-      if (n < 0) {
+      if (n < 0L) {
         err_str = strerror(errno);
         spdlog::warn("DL TUN/TAP write error  {}", err_str);
       }

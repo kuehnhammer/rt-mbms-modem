@@ -22,13 +22,13 @@
 #include <memory>
 #include "spdlog/spdlog.h"
 
-MultichannelRingbuffer::MultichannelRingbuffer(size_t size, size_t channels)
+MultichannelRingbuffer::MultichannelRingbuffer(size_t size, size_t channels) //NOLINT
   : _size( size )
   , _channels( channels )
   , _used( 0 )
   , _head( 0 )
 {
-  for (auto ch = 0; ch < _channels; ch++) {
+  for (auto ch = 0UL; ch < _channels; ch++) {
     auto buf = (char*)malloc(_size);
     if (buf == nullptr) {
       throw "Could not allocate memory";
@@ -59,7 +59,7 @@ auto MultichannelRingbuffer::write_head(size_t* writeable) -> std::vector<void*>
     } else {
       *writeable = _size - tail;
     }
-    for (auto ch = 0; ch < _channels; ch++) {
+    for (auto ch = 0UL; ch < _channels; ch++) {
       buffers[ch] = (void*)(_buffers[ch] + tail);
     }
   }
@@ -69,7 +69,6 @@ auto MultichannelRingbuffer::write_head(size_t* writeable) -> std::vector<void*>
 
 auto MultichannelRingbuffer::commit(size_t written) -> void
 {
-  assert(written >= 0);
   assert(written <= free_size());
   std::lock_guard<std::mutex> lock(_mutex);
   _used += written;
@@ -80,7 +79,6 @@ auto MultichannelRingbuffer::read(std::vector<char*> dest, size_t size) -> void
 {
   assert(dest.size() >= _channels);
   assert(size <= used_size());
-  assert(size >= 0);
 
   std::lock_guard<std::mutex> lock(_mutex);
   auto end = (_head + size) % _size;
@@ -88,12 +86,12 @@ auto MultichannelRingbuffer::read(std::vector<char*> dest, size_t size) -> void
   if (end <= _head) {
     auto first_part = _size - _head;
     auto second_part = size - first_part;
-    for (auto ch = 0; ch < _channels; ch++) {
+    for (auto ch = 0UL; ch < _channels; ch++) {
       memcpy(dest[ch],              _buffers[ch] + _head, first_part);
       memcpy(dest[ch] + first_part, _buffers[ch],         second_part);
     }
   } else {
-    for (auto ch = 0; ch < _channels; ch++) {
+    for (auto ch = 0UL; ch < _channels; ch++) {
       memcpy(dest[ch], _buffers[ch] + _head, size);
     }
   }

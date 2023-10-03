@@ -54,9 +54,7 @@ using libconfig::Config;
 using libconfig::FileIOException;
 using libconfig::ParseException;
 
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
+using namespace std::placeholders;
 
 static void print_version(FILE *stream, struct argp_state *state);
 void (*argp_program_version_hook)(FILE *, struct argp_state *) = print_version;
@@ -195,7 +193,7 @@ static bool restart = false;
  * @param sr   Sample rate (in Hz)
  * @param bw   Low pass filter bandwidth (in Hz)
  */
-void set_params(const std::string& ant, unsigned fc, double g, unsigned sr, unsigned bw) {
+void set_params(const std::string& ant, unsigned fc, double g, unsigned sr, unsigned bw) { //NOLINT
   sample_rate = sr;
   frequency = fc;
   bandwidth = bw;
@@ -215,6 +213,7 @@ void set_params(const std::string& ant, unsigned fc, double g, unsigned sr, unsi
  * @return 0 on clean exit, -1 on failure
  */
 auto main(int argc, char **argv) -> int {
+  try {
   struct arguments arguments;
   /* Default values */
   arguments.config_file = "/etc/5gmag-rt.conf";
@@ -377,7 +376,7 @@ auto main(int argc, char **argv) -> int {
   }
 
   std::vector<MbsfnFrameProcessor*> mbsfn_processors;
-  for (int i = 0; i < thread_cnt; i++) {
+  for (auto i = 0U; i < thread_cnt; i++) {
     auto p = new MbsfnFrameProcessor(cfg, rlc, phy, mac_log, rest_handler, rx_channels);
     if (!p->init()) {
       spdlog::error("Failed to create MBSFN processor. Exiting.");
@@ -431,15 +430,17 @@ auto main(int argc, char **argv) -> int {
         } else {
           // When decoding from the air, configure the SDR accordingly
           unsigned new_srate = srsran_sampling_freq_hz(cas_nof_prb);
-          spdlog::info("Setting sample rate {} Mhz for {} PRB / {} Mhz channel width", new_srate/1000000.0, phy.nr_prb(),
-              phy.nr_prb() * 0.2);
-          sdr.stop();
+          if (new_srate != sample_rate) {
+            sample_rate = new_srate;
+            spdlog::info("Setting sample rate {} Mhz for {} PRB / {} Mhz channel width", new_srate/1000000.0, phy.nr_prb(),
+                phy.nr_prb() * 0.2);
+            sdr.stop();
 
-          bandwidth = (cas_nof_prb * 200000) * 1.2;
-          sdr.tune(frequency, new_srate, bandwidth, gain, antenna, use_agc);
+            bandwidth = (cas_nof_prb * 200000);
+            sdr.tune(frequency, new_srate, bandwidth, gain, antenna, use_agc);
 
-
-          sdr.start();
+            sdr.start();
+          }
         }
         spdlog::debug("Synchronizing subframe");
         // ... and move to syncing state.
@@ -471,7 +472,7 @@ auto main(int argc, char **argv) -> int {
         // Set the cell parameters in the CAS processor
         cas_processor.set_cell(phy.cell());
 
-        for (int i = 0; i < thread_cnt; i++) {
+        for (auto i = 0U; i < thread_cnt; i++) {
           mbsfn_processors[i]->unlock();
         }
 
@@ -490,7 +491,6 @@ auto main(int argc, char **argv) -> int {
       int mb_idx = 0;
       while (state == processing) {
         tti = (tti + 1) % 10240; // Clamp the TTI
-        unsigned sfn = tti / 10;
         if (phy.is_cas_subframe(tti)) {
           // Get the samples from the SDR interface, hand them to a CAS processor, and start it
           // on a thread from the pool.
@@ -513,19 +513,18 @@ auto main(int argc, char **argv) -> int {
 
               // ...adjust the SDR's sample rate to fit the wider MBSFN bandwidth...
               unsigned new_srate = srsran_sampling_freq_hz(mbsfn_nof_prb);
-              spdlog::info("Setting sample rate {} Mhz for MBSFN with {} PRB / {} Mhz channel width", new_srate/1000000.0, mbsfn_nof_prb,
-                  mbsfn_nof_prb * 0.2);
-              sdr.stop();
-
-              bandwidth = (mbsfn_nof_prb * 200000) * 1.2;
-              sdr.tune(frequency, new_srate, bandwidth, gain, antenna, use_agc);
-
+              bandwidth = (mbsfn_nof_prb * 200000);
               // ... configure the PHY and CAS processor to decode a narrow CAS and wider MBSFN, and move back to syncing state
               // after reconfiguring and restarting the SDR.
               phy.set_cell();
               cas_processor.set_cell(phy.cell());
-
-              sdr.start();
+              if (new_srate != sample_rate) {
+                spdlog::info("Setting sample rate {} Mhz for MBSFN with {} PRB / {} Mhz channel width", new_srate/1000000.0, mbsfn_nof_prb,
+                    mbsfn_nof_prb * 0.2);
+                sdr.stop();
+                sdr.tune(frequency, new_srate, bandwidth, gain, antenna, use_agc);
+                sdr.start();
+              }
               spdlog::info("Synchronizing subframe after PRB extension");
               state = syncing;
             }
@@ -646,9 +645,11 @@ auto main(int argc, char **argv) -> int {
   }
 
   // Main loop ended by signal. Free the MBSFN processors, and bail.
-  for (int i = 0; i < thread_cnt; i++) {
+  for (auto i = 0U; i < thread_cnt; i++) {
     delete( mbsfn_processors[i] );
   }
-exit:
+  } catch (...) {
+    exit(1);
+  }
   return 0;
 }

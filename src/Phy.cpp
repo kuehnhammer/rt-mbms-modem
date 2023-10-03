@@ -39,13 +39,12 @@ const uint32_t kSubframesPerFrame = 10;
 
 const uint32_t kMaxCellsToDiscover = 3;
 
-Phy::Phy(const libconfig::Config& cfg, get_samples_t cb, uint8_t cs_nof_prb,
+Phy::Phy(const libconfig::Config& /*cfg*/, get_samples_t cb, uint8_t cs_nof_prb, //NOLINT
          int8_t override_nof_prb, uint8_t rx_channels)
-    : _cfg(cfg),
-      _sample_cb(std::move(std::move(cb))),
-      _cs_nof_prb(cs_nof_prb),
-      _override_nof_prb(override_nof_prb),
-      _rx_channels(rx_channels) {
+      : _sample_cb(std::move(cb))
+      , _cs_nof_prb(cs_nof_prb)
+      , _override_nof_prb(override_nof_prb)
+      , _rx_channels(rx_channels) {
   _buffer_max_samples = kMaxBufferSamples;
   _mib_buffer[0] = static_cast<cf_t*>(malloc(_buffer_max_samples * sizeof(cf_t)));  // NOLINT
   _mib_buffer[1] = static_cast<cf_t*>(malloc(_buffer_max_samples * sizeof(cf_t)));  // NOLINT
@@ -54,6 +53,7 @@ Phy::Phy(const libconfig::Config& cfg, get_samples_t cb, uint8_t cs_nof_prb,
 Phy::~Phy() {
   srsran_ue_sync_free(&_ue_sync);
   free(_mib_buffer[0]);  // NOLINT
+  free(_mib_buffer[1]);  // NOLINT
 }
 
 auto Phy::synchronize_subframe() -> bool {
@@ -66,8 +66,12 @@ auto Phy::synchronize_subframe() -> bool {
 
   if (ret == 1) {
     std::array<uint8_t, SRSRAN_BCH_PAYLOAD_LEN> bch_payload = {};
-    if (srsran_ue_sync_get_sfidx(&_ue_sync) == 0) {
+    auto sfn = srsran_ue_sync_get_sfn(&_ue_sync);
+    auto sf = srsran_ue_sync_get_sfidx(&_ue_sync);
+    if ((_cell.mbms_dedicated && sf == 0 && sfn % 4 == 0) ||
+        (!_cell.mbms_dedicated && sf == 0)) {
       int sfn_offset = 0;
+   //   srsran_ue_mib_reset(&_mib);
       int n =
           srsran_ue_mib_decode(&_mib, bch_payload.data(), nullptr, &sfn_offset);
       if (n == 1) {
@@ -89,7 +93,7 @@ auto Phy::synchronize_subframe() -> bool {
 }
 
 auto Phy::cell_search() -> bool {
-  std::array<srsran_ue_cellsearch_result_t, kMaxCellsToDiscover> found_cells = {0};
+  std::array<srsran_ue_cellsearch_result_t, kMaxCellsToDiscover> found_cells = {};
 
   uint32_t max_peak_cell = 0;
   int ret = srsran_ue_cellsearch_scan(&_cell_search, found_cells.data(), &max_peak_cell);
@@ -365,7 +369,7 @@ auto Phy::mbsfn_config_for_tti(uint32_t tti, unsigned& area)
         if (sf_idx <= _mcch.pmch_info_list[i].sf_alloc_end) {
           area = i;
           if ((i == 0 && fn_in_scheduling_period == 0 && sf == 1) ||
-              (i > 0 && _mcch.pmch_info_list[i-1].sf_alloc_end + 1 == sf_idx)) {
+              (i > 0 && static_cast<unsigned>(_mcch.pmch_info_list[i-1].sf_alloc_end) + 1 == sf_idx)) {
             spdlog::debug("assigning sig_mcs {}, mch_idx is {}",  area_info.mcch_cfg.sig_mcs, area);
             cfg.mbsfn_mcs = enum_to_number(area_info.mcch_cfg.sig_mcs);
           } else {

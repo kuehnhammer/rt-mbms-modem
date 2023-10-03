@@ -24,7 +24,7 @@
 auto CasFrameProcessor::init() -> bool {
   _signal_buffer_max_samples = 3 * SRSRAN_SF_LEN_PRB(MAX_PRB);
 
-  for (auto ch = 0; ch < _rx_channels; ch++) {
+  for (auto ch = 0U; ch < _rx_channels; ch++) {
     _signal_buffer_rx[ch] = srsran_vec_cf_malloc(_signal_buffer_max_samples);
     if (!_signal_buffer_rx[ch]) {
       spdlog::error("Could not allocate regular DL signal buffer\n");
@@ -114,7 +114,7 @@ auto CasFrameProcessor::process(uint32_t tti) -> bool {
   for (int k = 0; k < nof_grants; k++) {
     char str[512];  // NOLINT
     srsran_dci_dl_info(&dci[k], str, 512);
-    _rest._pdsch.mcs =  dci[k].tb[0].mcs_idx;
+    _rest._pdsch.mcs = static_cast<int>(dci[k].tb[0].mcs_idx);
     spdlog::debug("Decoded PDCCH: {}, snr={} dB\n", str, _ue_dl.chest_res.snr_db);
 
     if (srsran_ue_dl_dci_to_pdsch_grant(&_ue_dl, &_sf_cfg, &_ue_dl_cfg, &dci[k], &_ue_dl_cfg.cfg.pdsch.grant)) {
@@ -133,7 +133,7 @@ auto CasFrameProcessor::process(uint32_t tti) -> bool {
         if (pdsch_cfg->grant.tb[i].rv < 0) {
           uint32_t sfn              = tti / 10;
           uint32_t k                = (sfn / 2) % 4;
-          pdsch_cfg->grant.tb[i].rv = ((int32_t)ceilf(static_cast<float>(1.5) * k)) % 4;
+          pdsch_cfg->grant.tb[i].rv = ((int32_t)ceilf(1.5F * static_cast<float>(k))) % 4;
         }
         pdsch_res[i].payload = _data[i];
         pdsch_res[i].crc     = false;
@@ -142,7 +142,7 @@ auto CasFrameProcessor::process(uint32_t tti) -> bool {
     }
 
     _rest._pdsch.SetData(pdsch_data());
-    _rest._ce_values = std::move(ce_values());
+    _rest._ce_values = ce_values();
 
     // Decode PDSCH..
     auto ret = srsran_ue_dl_decode_pdsch(&_ue_dl, &_sf_cfg, &_ue_dl_cfg.cfg.pdsch, pdsch_res);
@@ -170,10 +170,10 @@ auto CasFrameProcessor::ce_values() -> std::vector<uint8_t> {
   uint32_t g = (sz - 12 * _cell.nof_prb) / 2;
   srsran_vec_abs_dB_cf(_ue_dl.chest_res.ce[0][0], -80, &ce_abs[g], SRSRAN_NRE * _cell.nof_prb);
   const uint8_t* data = reinterpret_cast<uint8_t*>(ce_abs.data());
-  return std::vector<uint8_t>( data, data + sz * sizeof(float));
+  return { data, data + sz * sizeof(float)};
 }
 
 auto CasFrameProcessor::pdsch_data() -> std::vector<uint8_t> {
   const uint8_t* data = reinterpret_cast<uint8_t*>(_ue_dl.pdsch.d[0]);
-  return std::vector<uint8_t>( data, data + _ue_dl_cfg.cfg.pdsch.grant.nof_re * sizeof(cf_t));
+  return { data, data + _ue_dl_cfg.cfg.pdsch.grant.nof_re * sizeof(cf_t)};
 }

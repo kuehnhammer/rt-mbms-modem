@@ -28,7 +28,7 @@ std::mutex MbsfnFrameProcessor::_rlc_mutex;
 auto MbsfnFrameProcessor::init() -> bool {
   _signal_buffer_max_samples = 3 * SRSRAN_SF_LEN_PRB(MAX_PRB);
 
-  for (auto ch = 0; ch < _rx_channels; ch++) {
+  for (auto ch = 0U; ch < _rx_channels; ch++) {
     _signal_buffer_rx[ch] = srsran_vec_cf_malloc(_signal_buffer_max_samples);
     if (!_signal_buffer_rx[ch]) {
       spdlog::error("Could not allocate regular DL signal buffer\n");
@@ -164,10 +164,10 @@ auto MbsfnFrameProcessor::process(uint32_t tti) -> int {
 
   if (mbsfn_cfg.is_mcch) {
     _rest._mcch.SetData(mch_data());
-    _rest._mcch.mcs = _pmch_cfg.pdsch_cfg.grant.tb[0].mcs_idx;
+    _rest._mcch.mcs = static_cast<int>(_pmch_cfg.pdsch_cfg.grant.tb[0].mcs_idx);
   } else {
     _rest._mch[mch_idx].SetData(mch_data());
-    _rest._mch[mch_idx].mcs = _pmch_cfg.pdsch_cfg.grant.tb[0].mcs_idx;
+    _rest._mch[mch_idx].mcs = static_cast<int>(_pmch_cfg.pdsch_cfg.grant.tb[0].mcs_idx);
     _rest._mch[mch_idx].present = true;
   }
 
@@ -264,5 +264,5 @@ void MbsfnFrameProcessor::configure_mbsfn(uint8_t area_id, srsran_scs_t subcarri
 
 auto MbsfnFrameProcessor::mch_data() const -> std::vector<uint8_t> const {
   const uint8_t* data = reinterpret_cast<uint8_t*>(_ue_dl.pmch.d);
-  return std::move(std::vector<uint8_t>( data, data + _pmch_cfg.pdsch_cfg.grant.nof_re * sizeof(cf_t)));
+  return std::vector<uint8_t>( data, data + _pmch_cfg.pdsch_cfg.grant.nof_re * sizeof(cf_t));
 }

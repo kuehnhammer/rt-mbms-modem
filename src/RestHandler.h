@@ -118,8 +118,6 @@ class RestHandler {
     void get(web::http::http_request message);
     void put(web::http::http_request message);
 
-    const libconfig::Config& _cfg;
-
     std::unique_ptr<web::http::experimental::listener::http_listener> _listener;
 
     state_t& _state;

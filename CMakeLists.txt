@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project (modem VERSION 1.2.2)
+project (modem VERSION 1.3.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(cpprestsdk REQUIRED)
 include(CTest)
 include(FindPkgConfig)
 
@@ -29,7 +30,6 @@ set(ENABLE_SRSENB OFF CACHE BOOL "Build srsENB application")
 set(ENABLE_SRSEPC OFF CACHE BOOL "Build srsEPC application")
 add_subdirectory(lib/srsran)
 
-find_package(cpprestsdk REQUIRED)
 include_directories(
   SYSTEM
     ${SPDLOG_INCLUDEDIR}
@@ -42,7 +42,7 @@ link_directories(
     ${PROJECT_BINARY_DIR}/lib/srsran/lib/src/phy/
     )
 
-
+add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 set(CMAKE_CXX_CLANG_TIDY clang-tidy --format-style=google --checks=clang-diagnostic-*,clang-analyzer-*,-*,bugprone*,modernize*,performance*)
 
 add_executable(modem src/main.cpp src/SdrReader.cpp src/Phy.cpp
@@ -51,6 +51,7 @@ add_executable(modem src/main.cpp src/SdrReader.cpp src/Phy.cpp
 
 target_link_libraries( modem
     LINK_PUBLIC
+    spdlog
     srsran_phy
     srsran_mac
     srsran_rlc

@@ -35,11 +35,11 @@ using web::http::experimental::listener::http_listener_config;
 RestHandler::RestHandler(const libconfig::Config& cfg, const std::string& url,
                          state_t& state, SdrReader& sdr, Phy& phy,
                          set_params_t set_params)
-    : _cfg(cfg),
-      _state(state),
-      _sdr(sdr),
-      _phy(phy),
-      _set_params(std::move(set_params)) {
+    : _state(state)
+    , _sdr(sdr)
+    , _phy(phy)
+    , _set_params(std::move(set_params)) 
+{
 
   http_listener_config server_config;
   if (url.rfind("https", 0) == 0) {
@@ -224,7 +224,7 @@ void RestHandler::put(http_request message) {
       if (jval.has_field("gain")) {
         g = jval.at("gain").as_double();
       }
-      _set_params( a, f, g, sr, bw);
+      _set_params( a, static_cast<unsigned int>(f), g, static_cast<unsigned int>(sr), bw);
 
       message.reply(status_codes::OK, answer);
     }

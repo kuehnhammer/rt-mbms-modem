@@ -48,11 +48,10 @@ class MbsfnFrameProcessor {
      *  @param rest RESTful API handler reference
      */
     MbsfnFrameProcessor(const libconfig::Config& cfg, srsran::rlc& rlc, Phy& phy, srslog::basic_logger& log_h, RestHandler& rest, unsigned rx_channels )
-      : _cfg(cfg)
-      , _rlc(rlc)
+      : _rlc(rlc)
       , _phy(phy)
-      , _rest(rest)
       , mch_mac_msg(20, log_h)
+      , _rest(rest)
       , _rx_channels(rx_channels)
       {
         _allow_rrc_sn_across_periods = false;
@@ -128,7 +127,6 @@ class MbsfnFrameProcessor {
     float cinr_db() { return _ue_dl.chest_res.snr_db; }
 
   private:
-    const libconfig::Config& _cfg;
     srsran::rlc& _rlc;
     Phy& _phy;
 
@@ -157,7 +155,6 @@ class MbsfnFrameProcessor {
     unsigned _rx_channels;
 
     bool _allow_rrc_sn_across_periods = false;
-
     static std::mutex _sched_stop_mutex;
     static std::map<uint8_t, uint16_t> _sched_stops;
 

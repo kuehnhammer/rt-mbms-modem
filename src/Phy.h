@@ -209,10 +209,9 @@ class Phy {
     srsran::mcch_msg_t& mcch() { return _mcch; }
 
     int _mcs = 0;
-    get_samples_t _sample_cb;
 
+    get_samples_t _sample_cb;
  private:
-    const libconfig::Config& _cfg;
     srsran_ue_sync_t _ue_sync = {};
     srsran_ue_cellsearch_t _cell_search = {};
     srsran_ue_mib_sync_t  _mib_sync = {};

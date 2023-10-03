@@ -42,7 +42,7 @@ class MultichannelRingbuffer {
     std::vector<char*> _buffers;
     size_t _size;
     size_t _channels;
-    size_t _head;
     size_t _used;
+    size_t _head;
     std::mutex _mutex;
 };

@@ -41,8 +41,10 @@ public:
      *
      *  @param cfg Config singleton reference
      */
-    explicit SdrReader(const libconfig::Config &cfg, size_t rx_channels)
-            : _overflows(0), _underflows(0), _cfg(cfg), _rx_channels(rx_channels), _readerThread{} {}
+    explicit SdrReader(const libconfig::Config& cfg, size_t rx_channels)
+      : _cfg(cfg)
+      , _rx_channels(rx_channels)
+      , _readerThread{} {}
 
     /**
      *  Default destructor.
@@ -57,13 +59,12 @@ public:
     /**
      * Initializes the SDR interface and creates a ring buffer according to the params from Cfg.
      */
-    bool init(const std::string &device_args, const char *sample_file, const char *write_sample_file);
+    bool init(const std::string& device_args, const char* sample_file, const char* write_sample_file);
 
     /**
      * Tune the SDR to the desired frequency, and set gain, filter and antenna parameters.
      */
-    bool tune(uint32_t frequency, uint32_t sample_rate, uint32_t bandwidth, double gain, const std::string &antenna,
-              bool use_agc);
+    bool tune(uint32_t frequency, uint32_t sample_rate, uint32_t bandwidth, double gain, const std::string &antenna, bool use_agc);
 
     /**
      * Start reading samples from the SDR
@@ -87,7 +88,7 @@ public:
      * @param nsamples sample count
      * @param rx_time unused
      */
-    int get_samples(cf_t *data[SRSRAN_MAX_CHANNELS], uint32_t nsamples, srsran_timestamp_t *rx_time);
+    int get_samples(cf_t* data[SRSRAN_MAX_CHANNELS], uint32_t nsamples, srsran_timestamp_t* rx_time);
 
     /**
      * Get current sample rate
@@ -138,44 +139,33 @@ public:
      */
     void disableSampleFileWriting() { _write_samples = false; }
 
-private:
+ private:
     void init_buffer();
-
     bool set_gain(bool use_agc, double gain, uint8_t idx);
-
     bool set_sample_rate(uint32_t rate, uint8_t idx);
-
     bool set_filter_bw(uint32_t bandwidth, uint8_t idx);
-
-    bool set_antenna(const std::string &antenna, uint8_t idx);
-
+    bool set_antenna(const std::string& antenna, uint8_t idx);
     bool set_frequency(uint32_t frequency, uint8_t idx);
-
     void read();
+    void* _sdr = nullptr;
+    void* _stream = nullptr;
 
-    void *_sdr = nullptr;
-    void *_stream = nullptr;
-
-    const libconfig::Config &_cfg;
+    const libconfig::Config& _cfg;
+    unsigned _rx_channels = 1;
 
     std::unique_ptr<MultichannelRingbuffer> _buffer;
 
     std::thread _readerThread;
     bool _running;
 
-    unsigned _rx_channels = 1;
     double _sampleRate;
     double _frequency;
     unsigned _filterBw;
     double _gain;
-    bool _use_agc;
+    bool _use_agc = false;
     double _min_gain;
     double _max_gain;
     std::string _antenna;
-    unsigned _overflows;
-    unsigned _underflows;
-
-    cf_t *_read_buffer;
 
     srsran_filesource_t file_source;
     srsran_filesink_t file_sink;

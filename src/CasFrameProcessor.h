@@ -44,11 +44,10 @@ class CasFrameProcessor {
     *  @param rlc RLC reference
     *  @param rest RESTful API handler reference
     */
-   CasFrameProcessor(const libconfig::Config& cfg, Phy& phy, srsran::rlc& rlc, RestHandler& rest, unsigned rx_channels)
-     : _cfg(cfg)
+   CasFrameProcessor(const libconfig::Config& /*cfg*/, Phy& phy, srsran::rlc& rlc, RestHandler& rest, unsigned rx_channels)
+     : _rlc(rlc)
      , _phy(phy)
      , _rest(rest)
-     , _rlc(rlc)
      , _rx_channels(rx_channels)
      {}
 
@@ -112,7 +111,6 @@ class CasFrameProcessor {
    float cinr_db() { return _ue_dl.chest_res.snr_db; }
 
  private:
-   const libconfig::Config& _cfg;
     srsran::rlc& _rlc;
     Phy& _phy;
     RestHandler& _rest;
