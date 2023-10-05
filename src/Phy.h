@@ -240,4 +240,6 @@ class Phy {
     int8_t _override_nof_prb;
     uint8_t _rx_channels;
     bool _search_extended_cp = true;
+
+    bool _has_pbch_repetition_r16 = false;
 };

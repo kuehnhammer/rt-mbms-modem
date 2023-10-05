@@ -39,12 +39,13 @@ const uint32_t kSubframesPerFrame = 10;
 
 const uint32_t kMaxCellsToDiscover = 3;
 
-Phy::Phy(const libconfig::Config& /*cfg*/, get_samples_t cb, uint8_t cs_nof_prb, //NOLINT
+Phy::Phy(const libconfig::Config& cfg, get_samples_t cb, uint8_t cs_nof_prb, //NOLINT
          int8_t override_nof_prb, uint8_t rx_channels)
       : _sample_cb(std::move(cb))
       , _cs_nof_prb(cs_nof_prb)
       , _override_nof_prb(override_nof_prb)
       , _rx_channels(rx_channels) {
+  cfg.lookupValue("modem.phy.pbch_repetition_r16", _has_pbch_repetition_r16);
   _buffer_max_samples = kMaxBufferSamples;
   _mib_buffer[0] = static_cast<cf_t*>(malloc(_buffer_max_samples * sizeof(cf_t)));  // NOLINT
   _mib_buffer[1] = static_cast<cf_t*>(malloc(_buffer_max_samples * sizeof(cf_t)));  // NOLINT
@@ -168,6 +169,7 @@ auto Phy::cell_search() -> bool {
 
     _cell = new_cell;
     _cell.mbsfn_prb = _cell.nof_prb;
+    _cell.has_pbch_repetition_r16 = _has_pbch_repetition_r16;
 
     if (srsran_ue_sync_set_cell(&_ue_sync, cell()) != 0) {
       spdlog::error("Phy: failed to set cell.\n");
