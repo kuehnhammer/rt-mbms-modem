@@ -179,13 +179,17 @@ class Phy {
     enum class SubcarrierSpacing {
       df_15kHz,
       df_7kHz5,
-      df_1kHz25
+      df_2kHz5,
+      df_1kHz25,
+      df_0kHz37
     };
 
     SubcarrierSpacing mbsfn_subcarrier_spacing() {
       if (_cell.mbms_dedicated) {
         switch (_sib13.mbsfn_area_info_list[0].subcarrier_spacing) {
+          case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_0dot37: return SubcarrierSpacing::df_0kHz37;
           case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_1dot25: return SubcarrierSpacing::df_1kHz25;
+          case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_2dot5: return SubcarrierSpacing::df_2kHz5;
           case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_7dot5: return SubcarrierSpacing::df_7kHz5;
           default: return SubcarrierSpacing::df_15kHz;
         }
@@ -197,7 +201,9 @@ class Phy {
     float mbsfn_subcarrier_spacing_khz() {
       if (_cell.mbms_dedicated) {
         switch (_sib13.mbsfn_area_info_list[0].subcarrier_spacing) {
+          case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_0dot37: return 0.37;
           case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_1dot25: return 1.25;
+          case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_2dot5: return 2.5;
           case srsran::mbsfn_area_info_t::subcarrier_spacing_t::khz_7dot5: return 7.5;
           default: return 15;
         }

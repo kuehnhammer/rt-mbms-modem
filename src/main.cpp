@@ -554,7 +554,9 @@ auto main(int argc, char **argv) -> int {
                 switch (phy.mbsfn_subcarrier_spacing()) {
                   case Phy::SubcarrierSpacing::df_15kHz:  scs = SRSRAN_SCS_15KHZ; break;
                   case Phy::SubcarrierSpacing::df_7kHz5:  scs = SRSRAN_SCS_7KHZ5; break;
+                  case Phy::SubcarrierSpacing::df_2kHz5:  scs = SRSRAN_SCS_2KHZ5; break;
                   case Phy::SubcarrierSpacing::df_1kHz25: scs = SRSRAN_SCS_1KHZ25; break;
+                  case Phy::SubcarrierSpacing::df_0kHz37: scs = SRSRAN_SCS_0KHZ37; break;
                 }
                 auto cell = phy.cell();
                 cell.nof_prb = cell.mbsfn_prb;
