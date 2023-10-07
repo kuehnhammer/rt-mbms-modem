@@ -1,0 +1,12 @@
+Source: rt-mbms-modem
+Section: comm
+Priority: optional
+Maintainer: Klaus Kuehnhammer <klaus@bitstem.com>
+Build-Depends: libssl-dev, libspdlog-dev, libmbedtls-dev, libboost-all-dev, libconfig++-dev, libsctp-dev, libfftw3-dev, libcpprest-dev, libusb-1.0-0-dev, clang-tidy, libgps-dev, libsoapysdr-dev, cmake
+Standards-Version: 4.6.0
+Homepage: https://github.com/5G-MAG/rt-mbms-modem
+
+Package: rt-mbms-modem
+Architecture: any
+Depends: libbladerf2 (>= 0.2021.10), libconfig++9v5 (>= 1.5-0.4~), libcpprest2.10 (>= 2.10.18), libfftw3-single3 (>= 3.3.5), libgcc-s1 (>= 4.0), libgps28 (>= 3.10+dev1~), libmbedcrypto7 (>= 2.28.0), libsoapysdr0.8 (>= 0.8.1), libssl3 (>= 3.0.0~~alpha1), libstdc++6 (>= 12), soapysdr-module-bladerf (>= 0.4)
+Description: Modem for 5G Broadcast reception

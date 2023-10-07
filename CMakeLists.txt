@@ -66,19 +66,24 @@ target_link_libraries( modem
     SoapySDR
 )
 
+set(CPACK_PACKAGING_INSTALL_PREFIX "/")
 
-install(TARGETS modem)
-install(FILES supporting_files/5gmag-rt-modem.service DESTINATION /usr/lib/systemd/system)
-install(FILES supporting_files/rt-common-shared/mbms/common-config/5gmag-rt.conf DESTINATION /etc)
-install(FILES supporting_files/rt-common-shared/mbms/common-config/5gmag-rt DESTINATION /etc/default)
-install(FILES supporting_files/pre_modem.sh DESTINATION /usr/share/5gmag-rt
+install(TARGETS modem DESTINATION bin)
+install(FILES supporting_files/5gmag-rt-modem.service DESTINATION lib/systemd/system)
+install(FILES supporting_files/5gmag-rt.conf DESTINATION ../etc)
+install(FILES supporting_files/5gmag-rt DESTINATION ../etc/default)
+install(FILES supporting_files/pre_modem.sh DESTINATION share/5gmag-rt
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
-install(FILES supporting_files/modem_measurements DESTINATION /etc/logrotate.d)
+install(FILES supporting_files/modem_measurements DESTINATION ../etc/logrotate.d)
 
 SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_NAME "rt-mbms-modem")
 SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "5G-MAG Reference Tools <reference-tools@5g-mag.com>")
 SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/debian/conffiles;${CMAKE_SOURCE_DIR}/debian/postinst;")
+SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION "rt-mbms-modem - 5G Broadcast modem")
+SET(CPACK_DEBIAN_PACKAGE_SECTION "comm")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 
 INCLUDE(CPack)
