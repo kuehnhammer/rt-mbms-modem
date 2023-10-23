@@ -5,8 +5,8 @@ BUILDDIR = build_dir
 # secondly called by launchpad
 build:
 	mkdir $(BUILDDIR);
-	cd $(BUILDDIR); cmake -DCMAKE_INSTALL_PREFIX=../debian/tmp/usr ..
-	make -C $(BUILDDIR)
+	cd $(BUILDDIR); cmake -DCMAKE_INSTALL_PREFIX=../debian/rt-mbms-modem/usr ..
+	make -C $(BUILDDIR) -j$(nproc)
 
 # thirdly called by launchpad
 binary: binary-indep binary-arch
@@ -16,9 +16,10 @@ binary-indep:
 
 binary-arch:
 	cd $(BUILDDIR); cmake -P cmake_install.cmake
-	mkdir debian/tmp/DEBIAN
-	dpkg-gencontrol -prt-mbms-modem
-	dpkg --build debian/tmp ..
+	mkdir -p debian/rt-mbms-modem/DEBIAN
+	dh_installdeb
+	dpkg-gencontrol -prt-mbms-modem -Pdebian/rt-mbms-modem
+	dpkg --build debian/rt-mbms-modem ..
 
 # firstly called by launchpad
 clean:

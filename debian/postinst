@@ -2,5 +2,9 @@
 
 set -e
 sudo setcap 'cap_sys_nice=eip' /usr/bin/modem
-sudo systemctl enable 5gmag-rt-modem
-sudo systemctl restart 5gmag-rt-modem
+adduser --system broadcast
+addgroup --system broadcast
+usermod -a -G plugdev broadcast
+sudo systemctl enable rt-mbms-modem
+sudo systemctl restart rt-mbms-modem
+#DEBHELPER#

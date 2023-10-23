@@ -15,5 +15,5 @@ if [ ! -f /usr/share/5gmag-rt/cert.pem ]; then
 	openssl req -new -batch -key key.pem -out cert.csr -passin pass:temporary
 	openssl rsa -in key.pem -passin pass:temporary -out key.pem
 	openssl x509 -req -days 3650 -in cert.csr -signkey key.pem -out cert.pem
-	chown 5gmag-rt:5gmag-rt *.pem
+	chown broadcast:broadcast *.pem
 fi

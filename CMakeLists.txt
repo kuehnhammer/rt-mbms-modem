@@ -69,7 +69,7 @@ target_link_libraries( modem
 set(CPACK_PACKAGING_INSTALL_PREFIX "/")
 
 install(TARGETS modem DESTINATION bin)
-install(FILES supporting_files/5gmag-rt-modem.service DESTINATION lib/systemd/system)
+install(FILES supporting_files/rt-mbms-modem.service DESTINATION lib/systemd/system)
 install(FILES supporting_files/5gmag-rt.conf DESTINATION ../etc)
 install(FILES supporting_files/5gmag-rt DESTINATION ../etc/default)
 install(FILES supporting_files/pre_modem.sh DESTINATION share/5gmag-rt
